@@ -16,7 +16,9 @@
     "http://127.0.0.1:1010/*",
     "https://api.mogul.tools/*",
     "https://mogul.tools/*",
-    "https://studio.mogul.tools/*"
+    "https://studio.mogul.tools/*",
+    "https://api.apps.mogul.pub/*",
+    "https://studio.apps.mogul.pub/*"
   ],
   "action": {
     "default_popup": "client.html",
