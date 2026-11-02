@@ -1,5 +1,4 @@
 // const APP_URL = 'https://studio.mogul.tools'
-// const APP_URL = 'https://studio.apps.mogul.pub' // on cloud foundry
 
 const APP_URL = 'http://127.0.0.1:1010'
 
