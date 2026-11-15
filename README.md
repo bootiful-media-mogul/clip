@@ -1,14 +1,27 @@
-# Mogul Clip 
+# Mogul Clip
 
-A Google Chrome browser extension to ingest (_clip_!) - web articles and RSS feeds - into Mogul.
+A Google Chrome extension that clips the page you're on into Mogul, as a note on your account.
+The popup fills in the page's title and URL, and whatever text you've selected on the page; you can edit all three before saving.
+Clips show up in the studio's notes sidebar.
 
-## installation 
-in development mode, you install this in Google Chrome by going to `chrome://extensions` and clicking on `Load unpacked extension...` and selecting the director with `manifest.json` in it.
+## installation
+
+Go to `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, and select this directory.
+After changing a file, click the reload icon on the extension's card.
+
+## how it works
+
+The popup talks to the gateway exactly as the studio does.
+It sends the gateway's session cookie with each request (`credentials: 'include'`), so being signed in to the studio in the same browser is all it needs.
+The footer picks the server: local (`http://127.0.0.1:1010`) or production (`https://studio.mogul.tools`).
+
+A clip is a `Note` whose owner is the mogul itself (`createNote(type: "mogul", ...)`) with a `title`, a `url`, and the note text.
+
+To debug the popup, right-click inside it and choose **Inspect**.
 
 ## to resolve
 
-* **authentication** - the general strategy here is to open a regular tab from the extension, and in that tab let the user login to Mogul, as per usual. Then, poll the tab for the cookie which the extension will read and can transmit to the API via a header assuming we install some sort of gateway filter to allow it.
+* **clipping from a phone, or from outside Chrome** - this needs a long-lived token (personal access tokens in the gateway) rather than a browser session.
+* **search** - the studio's Cmd-K search, in the popup, to find content that notes can attach to.
 
-* **search** - how do we search for content?
-
-* **the backend API for notes or tags or whatever** - how does this api look? how can we make it a generic concern that works across all the different types of things we want to clip? videos, rss, articles, etc? do we use vector search to show possibly related notes and clips for various content? is it a thing we show below text as a _writing tool_? 
+The fonts in `fonts/` are from the studio (Space Grotesk and IBM Plex, both under the SIL Open Font License; see the licenses alongside them).

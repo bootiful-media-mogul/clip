@@ -1,0 +1,253 @@
+/* the studio's look (client/src/assets/base.css, the day palette) in the space of a popup */
+
+@font-face {
+    font-family: 'Space Grotesk';
+    font-weight: 700;
+    src: url(fonts/space-grotesk-latin-700-normal.woff2) format('woff2');
+}
+
+@font-face {
+    font-family: 'IBM Plex Sans';
+    font-weight: 400;
+    src: url(fonts/ibm-plex-sans-latin-400-normal.woff2) format('woff2');
+}
+
+@font-face {
+    font-family: 'IBM Plex Sans';
+    font-weight: 600;
+    src: url(fonts/ibm-plex-sans-latin-600-normal.woff2) format('woff2');
+}
+
+@font-face {
+    font-family: 'IBM Plex Mono';
+    font-weight: 400;
+    src: url(fonts/ibm-plex-mono-latin-400-normal.woff2) format('woff2');
+}
+
+:root {
+    --gutter-space: 12pt;
+    --gutter-space-half: calc(var(--gutter-space) / 2);
+    --radius: 0.5em;
+
+    --font-display: 'Space Grotesk', system-ui, sans-serif;
+    --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+    --bg-color: #9ccbe8;
+    --chrome-color: #132a52;
+    --panel-bg-color: #f3f7fb;
+    --chrome-ink-color: #f2f6fc;
+    --ink-color: #0a0f1a;
+    --muted-color: #405069;
+    --label-color: #1b2840;
+    --rule-color: rgba(10, 15, 26, 0.2);
+    --field-bg-color: #ffffff;
+    --field-border-color: #74889f;
+    --accent-color: #1f4f9c;
+    --accent-hover-color: #1f3d70;
+    --accent-ink-color: #ffffff;
+    --disabled-color: #8fa2bd;
+    --danger-color: #c0392b;
+    --topbar-color: #0a0f1a;
+    --brand-color: #9ccbe8;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+}
+
+body {
+    width: 400px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--ink-color);
+    background: var(--bg-color);
+}
+
+[hidden] {
+    display: none !important;
+}
+
+.topbar {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: var(--gutter-space-half) var(--gutter-space);
+    background: var(--topbar-color);
+    color: var(--chrome-ink-color);
+}
+
+.brand {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4em;
+}
+
+.brand-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.6rem;
+    line-height: 1;
+    letter-spacing: -0.05em;
+}
+
+.brand-product {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--brand-color);
+}
+
+.user {
+    font-size: 0.85rem;
+    color: var(--brand-color);
+}
+
+/* a studio panel: a navy header bar over a light body, rounded, on the sky blue page */
+.panel {
+    margin: var(--gutter-space);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--panel-bg-color);
+}
+
+.panel-header {
+    padding: calc(var(--gutter-space) / 3) var(--gutter-space);
+    background: var(--chrome-color);
+    color: var(--chrome-ink-color);
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.panel-body {
+    padding: var(--gutter-space);
+}
+
+.state {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--label-color);
+    margin-top: var(--gutter-space-half);
+    margin-bottom: 0.25em;
+}
+
+label:first-child {
+    margin-top: 0;
+}
+
+input, textarea, select {
+    font: inherit;
+    color: var(--ink-color);
+    background: var(--field-bg-color);
+    border: 1px solid var(--field-border-color);
+    border-radius: var(--radius);
+    padding: 0.45em 0.6em;
+    width: 100%;
+}
+
+input:focus, textarea:focus, select:focus, button:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 1px;
+}
+
+#url {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 6em;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: var(--gutter-space);
+}
+
+button {
+    font: inherit;
+    cursor: pointer;
+    border: none;
+    border-radius: var(--radius);
+    padding: 0.5em 1.1em;
+}
+
+button.primary {
+    font-weight: 600;
+    background: var(--accent-color);
+    color: var(--accent-ink-color);
+}
+
+button.primary:hover {
+    background: var(--accent-hover-color);
+}
+
+button:disabled, button:disabled:hover {
+    cursor: default;
+    background: var(--disabled-color);
+}
+
+#signed-out button {
+    align-self: flex-start;
+}
+
+a {
+    color: var(--accent-color);
+}
+
+p {
+    margin: 0 0 var(--gutter-space-half) 0;
+}
+
+.muted {
+    color: var(--muted-color);
+}
+
+.small {
+    font-size: 0.8rem;
+}
+
+.saved-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.15rem;
+}
+
+.error {
+    margin-top: var(--gutter-space);
+    color: var(--danger-color);
+    font-size: 0.85rem;
+    overflow-wrap: anywhere;
+}
+
+footer {
+    display: flex;
+    align-items: center;
+    gap: var(--gutter-space-half);
+    padding: 0 var(--gutter-space) var(--gutter-space-half);
+}
+
+footer label {
+    margin: 0;
+    font-weight: 400;
+}
+
+footer select {
+    width: auto;
+    padding: 0.2em 0.4em;
+    font-size: 0.8rem;
+}

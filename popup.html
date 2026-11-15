@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mogul Clip</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+
+<header class="topbar">
+    <span class="brand">
+        <span class="brand-name">mogul</span>
+        <span class="brand-product">clip</span>
+    </span>
+    <span class="user" id="user"></span>
+</header>
+
+<main class="panel">
+    <div class="panel-header" id="panel-title">Clip this page</div>
+    <div class="panel-body">
+
+    <section id="loading" class="state">
+        <p class="muted">Connecting to Mogul…</p>
+    </section>
+
+    <section id="signed-out" class="state" hidden>
+        <p>Sign in to Mogul to clip this page.</p>
+        <button type="button" class="primary" id="sign-in">Sign in</button>
+        <p class="muted small">Sign in in the tab that opens, then click the clip button again.</p>
+    </section>
+
+    <form id="clip-form" class="state" hidden>
+        <label for="title">Title</label>
+        <input id="title" name="title" type="text" autocomplete="off">
+
+        <label for="url">URL</label>
+        <input id="url" name="url" type="url" autocomplete="off">
+
+        <label for="note">Note</label>
+        <textarea id="note" name="note" rows="6" placeholder="Why does this matter?"></textarea>
+
+        <div class="actions">
+            <span class="muted small" id="shortcut-hint"></span>
+            <button type="submit" class="primary" id="save">Save note</button>
+        </div>
+    </form>
+
+    <section id="saved" class="state" hidden>
+        <p class="saved-title" id="saved-message">Saved to your notes.</p>
+        <a href="#" id="open-studio">Open the studio</a>
+    </section>
+
+    <p id="error" class="error" role="alert" hidden></p>
+    </div>
+</main>
+
+<footer>
+    <label for="server" class="muted small">Server</label>
+    <select id="server"></select>
+</footer>
+
+<script src="popup.js"></script>
+</body>
+</html>
