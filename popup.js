@@ -4,12 +4,18 @@
 // along on every request (credentials: 'include'), and the gateway relays the user's
 // token to the api. so being signed in to the studio in this browser is all it takes.
 
-const SERVERS = {
+const ALL_SERVERS = {
     local: {label: 'Local', url: 'http://127.0.0.1:1010'},
     production: {label: 'Production', url: 'https://studio.mogul.tools'},
 }
 
-const DEFAULT_SERVER = 'local'
+// only the servers the manifest grants access to. the web store build (bin/package.sh)
+// leaves the local one out of the manifest, and so out of the popup
+const SERVERS = Object.fromEntries(Object.entries(ALL_SERVERS).filter(([, s]) =>
+    (chrome.runtime.getManifest().host_permissions || []).includes(s.url + '/*')))
+
+// the first one listed: local, when it's there, for development
+const DEFAULT_SERVER = Object.keys(SERVERS)[0]
 
 const $ = (id) => document.getElementById(id)
 
@@ -235,6 +241,8 @@ async function init() {
     const key = await serverKey()
     state.server = SERVERS[key]
     const select = $('server')
+    // a choice of one is no choice
+    document.querySelector('footer').hidden = Object.keys(SERVERS).length < 2
     for (const [k, s] of Object.entries(SERVERS)) {
         const option = document.createElement('option')
         option.value = k

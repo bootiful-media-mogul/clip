@@ -19,6 +19,13 @@ A clip is a `Note` whose owner is the mogul itself (`createNote(type: "mogul", .
 
 To debug the popup, right-click inside it and choose **Inspect**.
 
+## publishing
+
+`bin/package.sh [output-directory]` builds the zip for the Chrome Web Store.
+It drops `127.0.0.1` from the manifest, and the popup only offers the servers the manifest grants access to, so the store build talks to production only and has no server picker.
+Bump `version` in `manifest.json` before each upload.
+The privacy policy the store links to is `PRIVACY.md`.
+
 ## to resolve
 
 * **clipping from a phone, or from outside Chrome** - this needs a long-lived token (personal access tokens in the gateway) rather than a browser session.
