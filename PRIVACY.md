@@ -22,8 +22,8 @@ The extension does not read, store, or send your password or your cookies itself
 
 ## What it keeps in the browser
 
-- Text you have typed but not yet saved, so that it isn't lost when the popup closes. It is kept per page until you save, and is cleared when Chrome closes.
-- Which Mogul server it talks to.
+Text you have typed but not yet saved, so that it isn't lost when the popup closes.
+It is kept per page until you save, and is cleared when Chrome closes.
 
 ## What it doesn't do
 

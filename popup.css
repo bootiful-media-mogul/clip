@@ -233,21 +233,3 @@ p {
     font-size: 0.85rem;
     overflow-wrap: anywhere;
 }
-
-footer {
-    display: flex;
-    align-items: center;
-    gap: var(--gutter-space-half);
-    padding: 0 var(--gutter-space) var(--gutter-space-half);
-}
-
-footer label {
-    margin: 0;
-    font-weight: 400;
-}
-
-footer select {
-    width: auto;
-    padding: 0.2em 0.4em;
-    font-size: 0.8rem;
-}

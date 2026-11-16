@@ -13,7 +13,7 @@ After changing a file, click the reload icon on the extension's card.
 
 The popup talks to the gateway exactly as the studio does.
 It sends the gateway's session cookie with each request (`credentials: 'include'`), so being signed in to the studio in the same browser is all it needs.
-The footer picks the server: local (`http://127.0.0.1:1010`) or production (`https://studio.mogul.tools`).
+It talks to whichever single host `manifest.json` grants access to: the local stack (`http://127.0.0.1:1010`) here in the repo, production (`https://studio.mogul.tools`) in the store build.
 
 A clip is a `Note` whose owner is the mogul itself (`createNote(type: "mogul", ...)`) with a `title`, a `url`, and the note text.
 
@@ -21,8 +21,8 @@ To debug the popup, right-click inside it and choose **Inspect**.
 
 ## publishing
 
-`bin/package.sh [output-directory]` builds the zip for the Chrome Web Store.
-It drops `127.0.0.1` from the manifest, and the popup only offers the servers the manifest grants access to, so the store build talks to production only and has no server picker.
+`bin/package.sh [output-directory]` builds the extension for the Chrome Web Store, with production as its one host (or `MOGUL_SERVER`, if set).
+It writes the zip to upload, and the same build unzipped, which you can load unpacked to try against production first.
 Bump `version` in `manifest.json` before each upload.
 The privacy policy the store links to is `PRIVACY.md`.
 

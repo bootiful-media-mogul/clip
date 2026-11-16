@@ -4,34 +4,26 @@
 // along on every request (credentials: 'include'), and the gateway relays the user's
 // token to the api. so being signed in to the studio in this browser is all it takes.
 
-const ALL_SERVERS = {
-    local: {label: 'Local', url: 'http://127.0.0.1:1010'},
-    production: {label: 'Production', url: 'https://studio.mogul.tools'},
+// the mogul to talk to is the one host the manifest grants access to: the local stack in
+// the repo's manifest.json, production in the build bin/package.sh makes for the store.
+// so there's nothing to configure, and nothing to choose
+function serverFromManifest() {
+    const hosts = chrome.runtime.getManifest().host_permissions || []
+    if (hosts.length !== 1)
+        throw new Error(`manifest.json should grant exactly one host, not ${hosts.length}.`)
+    return new URL(hosts[0].replace(/\*$/, '')).origin
 }
-
-// only the servers the manifest grants access to. the web store build (bin/package.sh)
-// leaves the local one out of the manifest, and so out of the popup
-const SERVERS = Object.fromEntries(Object.entries(ALL_SERVERS).filter(([, s]) =>
-    (chrome.runtime.getManifest().host_permissions || []).includes(s.url + '/*')))
-
-// the first one listed: local, when it's there, for development
-const DEFAULT_SERVER = Object.keys(SERVERS)[0]
 
 const $ = (id) => document.getElementById(id)
 
 const state = {
-    server: null, // one of SERVERS
+    server: null, // { url }: the gateway, from the manifest
     mogul: null, // { id, givenName }
     tab: null, // the tab the popup was opened on
     existing: null, // the note already clipped for this page, if any: { id, title, note, url, created }
 }
 
 class SignedOutError extends Error {
-}
-
-async function serverKey() {
-    const {server} = await chrome.storage.local.get('server')
-    return SERVERS[server] ? server : DEFAULT_SERVER
 }
 
 async function graphql(query, variables = {}) {
@@ -238,23 +230,13 @@ async function init() {
     const [tab] = await chrome.tabs.query({active: true, currentWindow: true})
     state.tab = tab
 
-    const key = await serverKey()
-    state.server = SERVERS[key]
-    const select = $('server')
-    // a choice of one is no choice
-    document.querySelector('footer').hidden = Object.keys(SERVERS).length < 2
-    for (const [k, s] of Object.entries(SERVERS)) {
-        const option = document.createElement('option')
-        option.value = k
-        option.textContent = s.label
-        option.selected = k === key
-        select.append(option)
+    try {
+        state.server = {url: serverFromManifest()}
+    } catch (e) {
+        show(null)
+        showError(e.message)
+        return
     }
-    select.addEventListener('change', async () => {
-        await chrome.storage.local.set({server: select.value})
-        state.server = SERVERS[select.value]
-        await connect()
-    })
 
     $('sign-in').addEventListener('click', async () => {
         await chrome.tabs.create({url: state.server.url})
