@@ -171,6 +171,96 @@ textarea {
     min-height: 6em;
 }
 
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* attach to: three icon toggles (radio buttons underneath), then the dropdowns */
+.attach {
+    border: 0;
+    margin: var(--gutter-space-half) 0 0 0;
+    padding: 0;
+    min-width: 0;
+}
+
+.attach legend {
+    padding: 0;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--label-color);
+    margin-bottom: 0.25em;
+}
+
+.attach-kinds {
+    display: flex;
+    align-items: center;
+    gap: var(--gutter-space-half);
+}
+
+.attach-kinds input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+}
+
+.attach-kinds label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--field-border-color);
+    background: var(--field-bg-color);
+    color: var(--chrome-color);
+    cursor: pointer;
+}
+
+.attach-kinds label:hover {
+    border-color: var(--chrome-color);
+}
+
+.attach-kinds input:checked + label {
+    background: var(--chrome-color);
+    border-color: var(--chrome-color);
+    color: var(--chrome-ink-color);
+}
+
+.attach-kinds input:focus-visible + label {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 1px;
+}
+
+.attach-kinds svg {
+    width: 1.35rem;
+    height: 1.35rem;
+}
+
+.attach-summary {
+    margin-left: 0.25em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.attach-choice {
+    display: flex;
+    flex-direction: column;
+}
+
+.attach-choice label {
+    font-weight: 400;
+    font-size: 0.8rem;
+    margin-top: var(--gutter-space-half);
+}
+
 .actions {
     display: flex;
     align-items: center;

@@ -39,6 +39,27 @@
         <label for="note">Note</label>
         <textarea id="note" name="note" rows="6" placeholder="Why does this matter?"></textarea>
 
+        <fieldset class="attach">
+            <legend>Attach to</legend>
+            <div class="attach-kinds">
+                <input type="radio" name="attach-kind" id="attach-global" value="global" checked>
+                <label for="attach-global" title="Everything: your account"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18"/></svg><span class="visually-hidden">Everything</span></label>
+                <input type="radio" name="attach-kind" id="attach-podcasts" value="podcasts">
+                <label for="attach-podcasts" title="A podcast episode"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="19" height="19" rx="4.5"/><rect x="10.4" y="6" width="3.2" height="6" rx="1.6" fill="currentColor" stroke-width="1.4"/><path d="M8.5 10.5a3.5 3.5 0 0 0 7 0M12 14v3.5M10 17.5h4M6.3 7.5a6 6 0 0 0 0 5.5M17.7 7.5a6 6 0 0 1 0 5.5" stroke-width="1.7"/></svg><span class="visually-hidden">A podcast episode</span></label>
+                <input type="radio" name="attach-kind" id="attach-blogs" value="blogs">
+                <label for="attach-blogs" title="A blog post"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none"><mask id="blog-glyph"><rect width="24" height="24" fill="#fff"/><g fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.3" cy="16.7" r="1.9" fill="#000" stroke="none"/><path d="M6 11.2a6.8 6.8 0 0 1 6.8 6.8M6 6.4A11.6 11.6 0 0 1 17.6 18" stroke-width="2.4"/></g></mask><g fill="currentColor" mask="url(#blog-glyph)"><rect x="2" y="2" width="20" height="20" rx="4.5"/></g></svg><span class="visually-hidden">A blog post</span></label>
+                <span class="muted small attach-summary" id="attach-summary"></span>
+            </div>
+            <div class="attach-choice" id="attach-parent-row" hidden>
+                <label for="attach-parent" id="attach-parent-label"></label>
+                <select id="attach-parent"></select>
+            </div>
+            <div class="attach-choice" id="attach-child-row" hidden>
+                <label for="attach-child" id="attach-child-label"></label>
+                <select id="attach-child"></select>
+            </div>
+        </fieldset>
+
         <div class="actions">
             <span class="muted small" id="shortcut-hint"></span>
             <button type="submit" class="primary" id="save">Save note</button>

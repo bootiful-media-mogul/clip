@@ -20,7 +20,42 @@ const state = {
     server: null, // { url }: the gateway, from the manifest
     mogul: null, // { id, givenName }
     tab: null, // the tab the popup was opened on
-    existing: null, // the note already clipped for this page, if any: { id, title, note, url, created }
+    existing: null, // the note already clipped for this page, if any: { id, title, note, url, type, notableId }
+    // what the note goes on. 'global' is the mogul itself, the default. each of the
+    // others remembers its own picks, so flipping between them loses nothing; only the
+    // chosen kind's picks count. childId 'parent' means the podcast itself
+    attach: {kind: 'global', picks: {podcasts: {}, blogs: {}}},
+    lists: new Map(), // the podcasts, episodes, blogs, and posts loaded so far
+}
+
+// what each kind of attachment lists, and what it attaches the note to
+const ATTACH = {
+    podcasts: {
+        parentLabel: 'Podcast', childLabel: 'Episode',
+        chooseParent: 'Choose a podcast', chooseChild: 'Choose an episode',
+        noParents: 'You have no podcasts yet', noChildren: 'This podcast has no episodes yet',
+        parentType: 'podcast', wholeParent: 'The whole podcast', childType: 'episode',
+        parents: async () => (await graphql('query { podcasts { id title } }')).podcasts,
+        children: async (podcastId) => (await graphql(`
+            query ($id: Int) { podcastEpisodesByPodcast(podcastId: $id) { id title created } }`,
+            {id: podcastId})).podcastEpisodesByPodcast,
+        parentOf: async (episodeId) => (await graphql(`
+            query ($id: Int) { podcastEpisodeById(podcastEpisodeId: $id) { podcastId } }`,
+            {id: episodeId})).podcastEpisodeById.podcastId,
+    },
+    blogs: {
+        parentLabel: 'Blog', childLabel: 'Post',
+        chooseParent: 'Choose a blog', chooseChild: 'Choose a post',
+        noParents: 'You have no blogs yet', noChildren: 'This blog has no posts yet',
+        parentType: null, childType: 'post', // a blog itself can't have notes, only its posts
+        parents: async () => (await graphql('query { blogs { id title } }')).blogs,
+        children: async (blogId) => (await graphql(`
+            query ($id: Int) { blogPostsByBlog(blogId: $id) { id title created } }`,
+            {id: blogId})).blogPostsByBlog,
+        parentOf: async (postId) => (await graphql(`
+            query ($id: Int) { postById(postId: $id) { blogId } }`,
+            {id: postId})).postById.blogId,
+    },
 }
 
 class SignedOutError extends Error {
@@ -91,7 +126,9 @@ async function loadDraft() {
 
 async function saveDraft() {
     await chrome.storage.session.set({
-        [draftKey()]: {title: $('title').value, url: $('url').value, note: $('note').value},
+        [draftKey()]: {
+            title: $('title').value, url: $('url').value, note: $('note').value, attach: state.attach,
+        },
     })
 }
 
@@ -106,7 +143,7 @@ async function existingNote(url) {
         return null
     const data = await graphql(`
         query ($url: String) {
-            notesForUrl(url: $url) { id title note url created }
+            notesForUrl(url: $url) { id title note url created type notableId }
         }`, {url})
     return (data.notesForUrl && data.notesForUrl[0]) || null
 }
@@ -128,9 +165,14 @@ async function fillForm() {
         $('url').value = isWebUrl(state.tab.url) ? state.tab.url : ''
         $('note').value = selection
     }
+    if (draft && draft.attach)
+        state.attach = draft.attach
+    else if (state.existing)
+        state.attach = await attachmentOf(state.existing)
     $('panel-title').textContent = state.existing ? 'Your note on this page' : 'Clip this page'
     $('save').textContent = saveLabel()
     show('clip-form')
+    await showAttachment()
     const note = $('note')
     note.focus()
     note.setSelectionRange(note.value.length, note.value.length)
@@ -142,6 +184,100 @@ function appendSelection(note, selection) {
     if (!selection || note.includes(selection))
         return note
     return note.trim() ? note.replace(/\s+$/, '') + '\n\n' + selection : selection
+}
+
+// where an existing note is attached, in the popup's terms
+async function attachmentOf(note) {
+    const attach = {kind: 'global', picks: {podcasts: {}, blogs: {}}}
+    const id = note.notableId
+    if (note.type === 'episode')
+        attach.picks.podcasts = {parentId: await ATTACH.podcasts.parentOf(id), childId: String(id)}
+    else if (note.type === 'podcast')
+        attach.picks.podcasts = {parentId: id, childId: 'parent'}
+    else if (note.type === 'post')
+        attach.picks.blogs = {parentId: await ATTACH.blogs.parentOf(id), childId: String(id)}
+    attach.kind = {episode: 'podcasts', podcast: 'podcasts', post: 'blogs'}[note.type] || 'global'
+    return attach
+}
+
+// newest episode or post first. compares the moments, not the text, so dates written
+// with different offsets still sort right; the higher id breaks ties and stands in for a
+// missing date
+function newestFirst(a, b) {
+    const when = (item) => {
+        const t = Date.parse(item.created)
+        return Number.isNaN(t) ? -Infinity : t
+    }
+    return (when(b) - when(a)) || (b.id - a.id)
+}
+
+async function listOf(key, load) {
+    if (!state.lists.has(key))
+        state.lists.set(key, await load())
+    return state.lists.get(key) || []
+}
+
+function fillSelect(select, placeholder, items, selected, extra) {
+    select.replaceChildren()
+    const first = new Option(placeholder, '')
+    first.disabled = items.length === 0 && !extra
+    select.append(first)
+    if (extra)
+        select.append(new Option(extra.label, extra.value))
+    for (const item of items)
+        select.append(new Option(item.title || '(untitled)', String(item.id)))
+    select.value = selected != null && [...select.options].some(o => o.value === String(selected)) ? String(selected) : ''
+}
+
+// draws the attach-to controls for state.attach
+async function showAttachment() {
+    const kind = state.attach.kind
+    $('attach-' + kind).checked = true
+    $('attach-summary').textContent = kind === 'global' ? 'Your account' : ''
+    $('attach-parent-row').hidden = kind === 'global'
+    $('attach-child-row').hidden = true
+    if (kind === 'global')
+        return
+    const spec = ATTACH[kind]
+    const pick = state.attach.picks[kind]
+    try {
+        const parents = await listOf(kind, spec.parents)
+        // with only one podcast or blog, there's nothing to choose
+        if (pick.parentId == null && parents.length === 1)
+            pick.parentId = parents[0].id
+        $('attach-parent-label').textContent = spec.parentLabel
+        fillSelect($('attach-parent'), parents.length ? spec.chooseParent : spec.noParents, parents, pick.parentId)
+        if (pick.parentId == null)
+            return
+        const children = [...await listOf(kind + ':' + pick.parentId, () => spec.children(pick.parentId))]
+            .sort(newestFirst)
+        // a note already on the whole podcast can stay there
+        const whole = spec.parentType && pick.childId === 'parent' ? {label: spec.wholeParent, value: 'parent'} : null
+        $('attach-child-label').textContent = spec.childLabel
+        fillSelect($('attach-child'), children.length ? spec.chooseChild : spec.noChildren, children, pick.childId, whole)
+        $('attach-child-row').hidden = false
+    } catch (e) {
+        if (e instanceof SignedOutError)
+            show('signed-out')
+        else
+            showError(e.message)
+    }
+}
+
+// the notable to save the note on: { type, id }, or an error message
+function attachTarget() {
+    const kind = state.attach.kind
+    if (kind === 'global')
+        return {type: 'mogul', id: state.mogul.id}
+    const spec = ATTACH[kind]
+    const pick = state.attach.picks[kind]
+    if (pick.parentId == null)
+        return {error: spec.chooseParent + ', or attach the note to your account.'}
+    if (pick.childId === 'parent' && spec.parentType)
+        return {type: spec.parentType, id: Number(pick.parentId)}
+    if (!pick.childId)
+        return {error: spec.chooseChild + ', or attach the note to your account.'}
+    return {type: spec.childType, id: Number(pick.childId)}
 }
 
 function saveLabel() {
@@ -171,19 +307,28 @@ async function save(event) {
         showError('There is nothing to save yet.')
         return
     }
+    const target = attachTarget()
+    if (target.error) {
+        showError(target.error)
+        return
+    }
     const button = $('save')
     button.disabled = true
     button.textContent = 'Saving…'
     try {
         const saved = state.existing
             ? (await graphql(`
-                mutation ($id: Int, $title: String, $url: String, $note: String) {
-                    updateNote(id: $id, title: $title, url: $url, note: $note)
-                }`, {id: state.existing.id, title: title || null, url: url || null, note})).updateNote
+                mutation ($id: Int, $title: String, $url: String, $note: String, $type: String, $notableId: Int) {
+                    updateNote(id: $id, title: $title, url: $url, note: $note,
+                               notableType: $type, notableId: $notableId)
+                }`, {
+                id: state.existing.id, title: title || null, url: url || null, note,
+                type: target.type, notableId: target.id,
+            })).updateNote
             : (await graphql(`
-                mutation ($id: Int, $title: String, $url: String, $note: String) {
-                    createNote(type: "mogul", id: $id, title: $title, url: $url, note: $note)
-                }`, {id: state.mogul.id, title: title || null, url: url || null, note})).createNote
+                mutation ($type: String, $id: Int, $title: String, $url: String, $note: String) {
+                    createNote(type: $type, id: $id, title: $title, url: $url, note: $note)
+                }`, {type: target.type, id: target.id, title: title || null, url: url || null, note})).createNote
         if (!saved)
             throw new Error('Mogul did not save the note.')
         await clearDraft()
@@ -244,7 +389,29 @@ async function init() {
     })
     $('open-studio').addEventListener('click', openStudio)
     $('clip-form').addEventListener('submit', save)
-    $('clip-form').addEventListener('input', saveDraft)
+    $('clip-form').addEventListener('input', (e) => {
+        if (!e.target.closest('.attach'))
+            saveDraft()
+    })
+    for (const radio of document.querySelectorAll('input[name="attach-kind"]'))
+        radio.addEventListener('change', async () => {
+            showError(null)
+            state.attach.kind = radio.value
+            await saveDraft()
+            await showAttachment()
+        })
+    $('attach-parent').addEventListener('change', async () => {
+        showError(null)
+        const value = $('attach-parent').value
+        state.attach.picks[state.attach.kind] = {parentId: value ? Number(value) : null, childId: null}
+        await saveDraft()
+        await showAttachment()
+    })
+    $('attach-child').addEventListener('change', async () => {
+        showError(null)
+        state.attach.picks[state.attach.kind].childId = $('attach-child').value || null
+        await saveDraft()
+    })
     $('note').addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && (e.metaKey || e.ctrlKey))
             $('clip-form').requestSubmit()
